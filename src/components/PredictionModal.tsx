@@ -1,5 +1,6 @@
 import { X, Activity, Shield, Zap, AlertTriangle } from 'lucide-react';
 import { Match } from '../types';
+import { TeamLogo, LeagueLogo } from './Logos';
 
 export default function PredictionModal({ match, onClose }: { match: Match, onClose: () => void }) {
   const p = match.prediction;
@@ -21,11 +22,20 @@ export default function PredictionModal({ match, onClose }: { match: Match, onCl
         <div className="overflow-y-auto p-4 space-y-6">
           {/* Match Header */}
           <div className="text-center">
-            <div className="text-xs text-gray-400 mb-2">{match.league}</div>
+            <div className="text-xs text-gray-400 mb-2 flex items-center justify-center gap-2">
+              <LeagueLogo name={match.league} className="w-4 h-4 text-[8px]" />
+              {match.league}
+            </div>
             <div className="flex justify-between items-center px-4">
-              <div className="w-1/3 text-right font-bold text-white">{match.homeTeam.name}</div>
-              <div className="w-1/3 text-center text-2xl font-black text-[#facc15]">VS</div>
-              <div className="w-1/3 text-left font-bold text-white">{match.awayTeam.name}</div>
+              <div className="w-[40%] flex flex-col items-center gap-2">
+                <TeamLogo name={match.homeTeam.name} className="w-10 h-10 text-sm" />
+                <div className="font-bold text-white text-sm text-center">{match.homeTeam.name}</div>
+              </div>
+              <div className="w-[20%] text-center text-xl font-black text-[#facc15]">VS</div>
+              <div className="w-[40%] flex flex-col items-center gap-2">
+                <TeamLogo name={match.awayTeam.name} className="w-10 h-10 text-sm" />
+                <div className="font-bold text-white text-sm text-center">{match.awayTeam.name}</div>
+              </div>
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import { Match } from '../types';
 import { Clock, PlayCircle, CheckCircle2 } from 'lucide-react';
+import { TeamLogo, LeagueLogo } from './Logos';
 
 export default function LiveView({ 
   matches, 
@@ -16,6 +17,15 @@ export default function LiveView({
 }) {
   const dateObj = matches.length > 0 && matches[0].timestamp ? new Date(matches[0].timestamp) : new Date();
   const timeStr = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+
+  // Group matches by league
+  const groupedByLeague = matches.reduce((acc, match) => {
+    if (!acc[match.league]) acc[match.league] = [];
+    acc[match.league].push(match);
+    return acc;
+  }, {} as Record<string, Match[]>);
+
+  const sortedLeagues = Object.keys(groupedByLeague).sort();
 
   return (
     <div className="bg-[#131324] min-h-full pb-24">
@@ -74,72 +84,99 @@ export default function LiveView({
               <span>🆕</span> NEW CYCLE STARTED
             </div>
           )}
-          {Object.entries(
-            matches.reduce((acc, match) => {
-              if (!acc[match.league]) acc[match.league] = [];
-              acc[match.league].push(match);
+          
+          {sortedLeagues.map(league => {
+            const leagueMatches = groupedByLeague[league];
+            
+            // Group by time within league
+            const groupedByTime = leagueMatches.reduce((acc, match) => {
+              if (!acc[match.time]) acc[match.time] = [];
+              acc[match.time].push(match);
               return acc;
-            }, {} as Record<string, Match[]>)
-          ).map(([league, leagueMatches]) => (
+            }, {} as Record<string, Match[]>);
+            
+            const sortedTimes = Object.keys(groupedByTime).sort();
+
+            return (
             <div key={league} className="space-y-2">
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider px-2">
+              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider px-2 bg-[#2e3b55] py-2 rounded flex items-center gap-2">
+                <LeagueLogo name={league} />
                 {league}
               </div>
-              {leagueMatches.map((match) => (
-                <div 
-                  key={match.id} 
-                  className="bg-[#1e1e38] rounded-lg p-3 border border-gray-800 cursor-pointer hover:border-gray-600 transition-colors"
-                  onClick={() => onMatchClick(match)}
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs text-gray-400">Slot {match.time}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                      phase === 'OPEN' ? 'bg-blue-500/20 text-blue-400' : 
-                      phase === 'PLAYING' ? 'bg-green-500/20 text-green-400 animate-pulse' : 
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {phase}
-                    </span>
+              
+              {sortedTimes.map(time => {
+                const timeMatches = groupedByTime[time];
+                
+                return (
+                <div key={time} className="space-y-2">
+                  <div className="text-xs font-bold text-gray-500 px-2 mt-2">
+                    Slot {time}
                   </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="w-[40%] text-right font-medium text-sm text-white">{match.homeTeam.name}</div>
-                    
-                    <div className="w-[20%] flex justify-center">
-                      {phase === 'OPEN' ? (
-                        <div className="text-gray-500 font-bold text-sm">VS</div>
-                      ) : (
-                        <div className="flex items-center gap-2 bg-[#131324] px-3 py-1 rounded border border-gray-700">
-                          <span className="font-bold text-[#facc15]">{match.score?.home ?? 0}</span>
-                          <span className="text-gray-500">-</span>
-                          <span className="font-bold text-[#facc15]">{match.score?.away ?? 0}</span>
+                  {timeMatches.map((match) => (
+                    <div 
+                      key={match.id} 
+                      className="bg-[#1e1e38] rounded-lg p-3 border border-gray-800 cursor-pointer hover:border-gray-600 transition-colors"
+                      onClick={() => onMatchClick(match)}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs text-gray-400">Slot {match.time}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                          phase === 'OPEN' ? 'bg-blue-500/20 text-blue-400' : 
+                          phase === 'PLAYING' ? 'bg-green-500/20 text-green-400 animate-pulse' : 
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {phase}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <div className="w-[40%] flex items-center justify-end gap-2">
+                          <TeamLogo name={match.homeTeam.name} />
+                          <span className="text-right font-medium text-sm text-white">{match.homeTeam.name}</span>
+                        </div>
+                        
+                        <div className="w-[20%] flex justify-center">
+                          {phase === 'OPEN' ? (
+                            <div className="text-gray-500 font-bold text-sm">VS</div>
+                          ) : (
+                            <div className="flex items-center gap-2 bg-[#131324] px-3 py-1 rounded border border-gray-700">
+                              <span className="font-bold text-[#facc15]">{match.score?.home ?? 0}</span>
+                              <span className="text-gray-500">-</span>
+                              <span className="font-bold text-[#facc15]">{match.score?.away ?? 0}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="w-[40%] flex items-center justify-start gap-2">
+                          <span className="text-left font-medium text-sm text-white">{match.awayTeam.name}</span>
+                          <TeamLogo name={match.awayTeam.name} />
+                        </div>
+                      </div>
+                      
+                      {phase === 'OPEN' && (
+                        <div className="flex justify-center gap-2 mt-3">
+                          <div className="bg-[#131324] px-4 py-1.5 rounded text-xs border border-gray-700 text-center w-16 text-white">
+                            <div className="text-gray-500 mb-0.5">1</div>
+                            <div className="font-bold">{match.odds.home.toFixed(2)}</div>
+                          </div>
+                          <div className="bg-[#131324] px-4 py-1.5 rounded text-xs border border-gray-700 text-center w-16 text-white">
+                            <div className="text-gray-500 mb-0.5">X</div>
+                            <div className="font-bold">{match.odds.draw.toFixed(2)}</div>
+                          </div>
+                          <div className="bg-[#131324] px-4 py-1.5 rounded text-xs border border-gray-700 text-center w-16 text-white">
+                            <div className="text-gray-500 mb-0.5">2</div>
+                            <div className="font-bold">{match.odds.away.toFixed(2)}</div>
+                          </div>
                         </div>
                       )}
                     </div>
-                    
-                    <div className="w-[40%] text-left font-medium text-sm text-white">{match.awayTeam.name}</div>
-                  </div>
-                  
-                  {phase === 'OPEN' && (
-                    <div className="flex justify-center gap-2 mt-3">
-                      <div className="bg-[#131324] px-4 py-1.5 rounded text-xs border border-gray-700 text-center w-16 text-white">
-                        <div className="text-gray-500 mb-0.5">1</div>
-                        <div className="font-bold">{match.odds.home.toFixed(2)}</div>
-                      </div>
-                      <div className="bg-[#131324] px-4 py-1.5 rounded text-xs border border-gray-700 text-center w-16 text-white">
-                        <div className="text-gray-500 mb-0.5">X</div>
-                        <div className="font-bold">{match.odds.draw.toFixed(2)}</div>
-                      </div>
-                      <div className="bg-[#131324] px-4 py-1.5 rounded text-xs border border-gray-700 text-center w-16 text-white">
-                        <div className="text-gray-500 mb-0.5">2</div>
-                        <div className="font-bold">{match.odds.away.toFixed(2)}</div>
-                      </div>
-                    </div>
-                  )}
+                  ))}
                 </div>
-              ))}
+                );
+              })}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

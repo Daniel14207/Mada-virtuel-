@@ -61,17 +61,17 @@ export type LeagueMode = 'FAST' | 'NORMAL';
 export const getCycleConfig = (mode: LeagueMode) => {
   const SLOT_INTERVAL_MS = mode === 'FAST' ? 2 * 60 * 1000 : 5 * 60 * 1000;
   const CYCLE_SLOTS = 20;
-  const BREAK_DURATION_MS = 5 * 60 * 1000;
-  const CYCLE_DURATION_MS = CYCLE_SLOTS * SLOT_INTERVAL_MS + BREAK_DURATION_MS;
+  const JUMP_MS = 5 * 60 * 1000; // 5 minutes jump after slot 20
+  const CYCLE_DURATION_MS = (CYCLE_SLOTS - 1) * SLOT_INTERVAL_MS + JUMP_MS;
   
-  const PHASE_BETTING_MS = mode === 'FAST' ? 30 * 1000 : 60 * 1000;
-  const PHASE_PLAYING_MS = mode === 'FAST' ? 75 * 1000 : 3 * 60 * 1000;
-  const PHASE_RESULT_MS = mode === 'FAST' ? 15 * 1000 : 60 * 1000;
+  const PHASE_BETTING_MS = mode === 'FAST' ? 40 * 1000 : 60 * 1000;
+  const PHASE_PLAYING_MS = mode === 'FAST' ? 60 * 1000 : 3 * 60 * 1000;
+  const PHASE_RESULT_MS = mode === 'FAST' ? 20 * 1000 : 60 * 1000;
 
   return {
     SLOT_INTERVAL_MS,
     CYCLE_SLOTS,
-    BREAK_DURATION_MS,
+    JUMP_MS,
     CYCLE_DURATION_MS,
     PHASE_BETTING_MS,
     PHASE_PLAYING_MS,

@@ -4,12 +4,14 @@ export function calculateTeamPower(team: Team) {
   const attackStrength = team.stats.goalsScored / team.stats.matches;
   const defenseWeakness = team.stats.goalsConceded / team.stats.matches;
   
+  // Form score based on last 5 matches (W=3, D=1, L=0)
   const formScore = team.stats.last5.reduce((acc, result) => {
     if (result === 'W') return acc + 3;
     if (result === 'D') return acc + 1;
     return acc;
   }, 0);
   
+  // Power Score = (Attack × 0.4) + (Form × 0.4) - (Defense × 0.2)
   const powerScore = (attackStrength * 0.4) + (formScore * 0.4) - (defenseWeakness * 0.2);
   
   return { attackStrength, defenseWeakness, formScore, powerScore };
